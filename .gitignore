@@ -9,6 +9,8 @@ __pycache__/
 # SQLite Database Files
 *.db
 
+.DS_Store
+
 # Distribution / packaging
 .Python
 build/

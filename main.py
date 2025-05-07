@@ -1,3 +1,4 @@
+import services.init
 from db import Session
 from models import *
 from services import company_service, recommendation_generator_service
@@ -28,7 +29,7 @@ def attrgroups(session):
     print(safeguard.description)
     print('')
     #company = session.query(Company).filter_by(name="BauMitUns GmbH").first()
-    company = session.query(Company).filter_by(name="WirVerkaufenIhrZeug AG").first()
+    company = session.query(Company).filter_by(name="BauMitUns GmbH").first()
 
     templates = session.query(RecommendationTemplate).filter_by(safeguard_id=safeguard.id).all()
 
@@ -42,6 +43,7 @@ def attrgroups(session):
 
 
 if __name__ == "__main__":
+    services.init.init_db()
     with Session() as session:
         #main(session)
         attrgroups(session)
