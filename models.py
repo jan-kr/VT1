@@ -24,6 +24,17 @@ class Company(Base):
     def __str__(self):
         return f"<Company (id={self.id}, name={self.name})>"
 
+    def all_attributes(self):
+        attrs = []
+        for attr in self.attributes:
+            attrs.append(attr.dict())
+
+        for group in self.linked_attribute_groups:
+            for attr in group.group.attributes:
+                attrs.append(attr.dict())
+
+        return attrs
+
 
 class CompanyAttribute(Base):
     __tablename__ = "company_attributes"
@@ -124,7 +135,7 @@ class RecommendationTemplate(Base):
     parameters_required: Mapped[list[str]] = mapped_column(JSON)
 
     def __str__(self):
-        return f"<RecommendationTemplate (id={self.id}, safeguard={self.safeguard_id}, #parameters={len(self.parameters_required)})>"
+        return f"<RecommendationTemplate (id={self.id}, safeguard={self.safeguard_id}, #parameters={len(self.parameters_required)}, parameters={self.parameters_required})>"
 
 
 class ParameterPreset(Base):
@@ -136,7 +147,7 @@ class ParameterPreset(Base):
     parameters: Mapped[dict] = mapped_column(JSON)
 
     def __str__(self):
-        return f"<ParameterPreset (id={self.id}, template={self.template_id}, #parameters={len(self.parameters)})>"
+        return f"<ParameterPreset (id={self.id}, template={self.template_id}, #parameters={len(self.parameters)}, values={self.dict()})>"
 
     def dict(self):
         return dict(sorted(self.match_criteria.items()))
