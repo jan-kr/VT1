@@ -1,4 +1,4 @@
-from jinja2 import Template
+from jinja2 import Template, Environment, FileSystemLoader
 from db import Session
 from models import *
 from sqlalchemy.orm import selectinload
@@ -20,7 +20,7 @@ def generate_recommendations(session, safeguard: Safeguard, preset: ParameterPre
 def get_matching_presets(session, template):
     required_set = set(template.parameters_required)
 
-    presets = session.query(ParameterPreset).all()
+    presets = session.query(ParameterPreset).all() #TODO: fetch only presets for given template
     return [
         preset for preset in presets
         if required_set.issubset(preset.parameters.keys())
@@ -43,3 +43,12 @@ def get_matching_attribute_groups(session, preset: ParameterPreset, company = No
             matching_groups.append(group)
 
     return matching_groups
+
+
+def render_scenario(scenario, context):
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template(f"{scenario}.j2")
+
+    manual = template.render(context)
+
+    return manual

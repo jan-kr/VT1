@@ -16,7 +16,11 @@ def init():
     session.commit()
 
     attributes = [
-        CompanyAttribute(company_id=company.id, key="cloud_storage", value="OneDrive"),
+        CompanyAttribute(
+            company_id=company.id,
+            key="cloud_storage",
+            value="OneDrive"
+        ),
         CompanyAttribute(company_id=company.id, key="has_backups", value="no"),
         CompanyAttribute(company_id=company.id, key="os_type", value="Windows 11"),
     ]
@@ -299,6 +303,14 @@ weaknesses in controls (people, processes, and technology), and simulating the o
     )
 
     session.add(agv2)
+    session.commit()
+
+    cag = CompanyAttributeGroup(
+        company_id=company.id,
+        group_id=ag.id,
+    )
+
+    session.add(cag)
     session.commit()
 
     session.close()
