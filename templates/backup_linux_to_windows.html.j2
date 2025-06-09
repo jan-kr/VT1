@@ -1,0 +1,91 @@
+<div class="entry">
+    <h1>Backup Manual: Source Host {{ source_host }}</h1>
+    <p><strong>Target:</strong> {{ target_host }} — Share: {{ target_share }}</p>
+
+    <h2>Backup Steps</h2>
+
+    {% set step_counter = 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: On Linux source server, mount Windows SMB share</h3>
+        <div class="code">sudo mount -t cifs -o username={{ target_user }},password=&lt;password&gt; //{{ target_host }}/{{ target_share }}
+            /mnt/backup
+        </div>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: {% if versioning %}Create timestamped target folder on mounted share{% else %}Use
+            target folder on mounted share{% endif %}</h3>
+        <div class="code">
+            {% if versioning %}
+                TIMESTAMP=$(date +"%Y%m%d")<br>
+                mkdir -p /mnt/backup/{{ source_host }}/$TIMESTAMP<br>
+            {%- else -%}
+                TARGET_FOLDER=/mnt/backup/{{ target_base_name }}
+            {%- endif -%}
+        </div>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Back up source folders to defined backup location</h3>
+        {% for source_path in source_paths %}
+            <div class="step">
+                <h4>Step {{ step_counter }}.{{ loop.index }}: Run rsync from {{ source_path }} to Windows share</h4>
+                <div class="code">rsync
+                    {% if versioning %}
+                        -avz
+                    {% else %}
+                        -avz --delete
+                    {% endif %} {{ source_path }} /mnt/backup/{{ source_host }}{{ "/$TIMESTAMP" if versioning else "" }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Verify the files on Windows server</h3>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Unmount SMB share</h3>
+        <div class="code">sudo umount /mnt/backup</div>
+    </div>
+
+    {% if retention_days and versioning %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: Optional: remove old backups older than {{ retention_days }} days (manually or
+                with
+                script on Windows share)</h3>
+            <p>Example (if share is mounted locally and supports UNIX timestamps):</p>
+            <div class="code">find /mnt/backup/{{ source_host }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec
+                rm -rf {} \;
+            </div>
+        </div>
+    {% endif %}
+
+    {% if frequency %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: Automate this backup with a cron job</h3>
+            <p>Edit your <a
+                    href="https://www.stetic.com/developer/cronjob-linux-tutorial-und-crontab-syntax/">crontab</a>:
+            </p>
+            <div class="code">crontab -e</div>
+            <p>Example entry (daily at 2:00 AM):</p>
+            <div class="code">0 2 * * * /path/to/backup_script.sh >> /var/log/backup.log 2>&1</div>
+            <p>The <code>backup_script.sh</code> should:</p>
+            <ul>
+                <li>Mount SMB share</li>
+                <li>Find previous backup</li>
+                <li>Create new timestamped folder</li>
+                <li>Run rsync {% if incremental %}with <code>--link-dest</code>{% endif %}</li>
+                <li>Unmount SMB share</li>
+                <li>Run retention command (optional)</li>
+            </ul>
+        </div>
+    {% endif %}
+</div>

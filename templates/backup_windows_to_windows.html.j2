@@ -1,0 +1,85 @@
+<div class="entry">
+    <h1>Backup Manual: Source Host {{ source_host }}</h1>
+    <p><strong>Target:</strong> {{ target_host }} — Share: {{ target_share }}</p>
+
+    <h2>Backup Steps</h2>
+
+    {% set step_counter = 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: On target Windows server, create SMB share (if not already available) at
+            \\{{ target_host }}\{{ target_share }}</h3>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: On source Windows server, map network drive</h3>
+        <div class="code">net use Z: \\{{ target_host }}\{{ target_share }} /user:{{ target_user }} &lt;password&gt;
+        </div>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: {% if versioning %}Create timestamped folder{% else %}Use target
+            folder{% endif %}</h3>
+        <div class="code">
+            {% if versioning %}
+                $timestamp = Get-Date -Format "yyyyMMdd"<br>
+                $targetFolder = "Z:\{{ source_host }}\$timestamp"<br>
+                New-Item -ItemType Directory -Path $targetFolder<br>
+            {%- else -%}
+                $targetFolder = "Z:\{{ source_host }}"
+            {%- endif -%}
+        </div>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Back up source folders to defined backup location</h3>
+        {% for source_path in source_paths %}
+            <div class="step">
+                <h4>Step {{ step_counter }}.{{ loop.index }}: Run Robocopy from {{ source_path }} to target folder</h4>
+                <div class="code">robocopy {{ source_path }} $targetFolder /MIR {{ robocopy_options }}
+                    /LOG:C:\backup\backup.log
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Verify the files on target Windows server</h3>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Unmap network drive</h3>
+        <div class="code">net use Z: /delete</div>
+    </div>
+
+    {% if retention_days and versioning %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: Optional: implement retention policy on Windows target</h3>
+            <p>Example PowerShell one-liner:</p>
+            <div class="code">Get-ChildItem -Path "Z:\{{ source_host }}" -Directory | Where-Object { $_.LastWriteTime
+                -lt (Get-Date).AddDays(-{{ retention_days }}) } | Remove-Item -Recurse -Force
+            </div>
+        </div>
+    {% endif %}
+
+    {% if frequency %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: Automate this backup with Windows Task Scheduler</h3>
+            <p>Create a scheduled task that runs {{ frequency }}.</p>
+            <p>The scheduled task should run a PowerShell script or batch file that:</p>
+            <ul>
+                <li>Map network drive</li>
+                <li>Create new timestamped folder (if versioning)</li>
+                <li>Run Robocopy</li>
+                <li>Run retention cleanup (optional)</li>
+                <li>Unmap network drive</li>
+            </ul>
+        </div>
+    {% endif %}
+</div>

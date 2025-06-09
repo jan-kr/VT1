@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>
+        {% block title %}
+            {{ title|default("Default Title") }}
+        {% endblock %}
+    </title>
+    <style>
+        @media print {
+            @page {
+                margin: 15mm;
+            }
+
+            body {
+                margin: 0;
+                font-size: 0.8rem;
+            }
+        }
+
+        body {
+            font-family: sans-serif;
+            line-height: 1.5;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        .code {
+            background-color: #2a2a2a;
+            padding: 0.75em;
+            border-radius: 4px;
+            color: #ffffff;
+            font-family: Monospaced, monospace;
+            font-size: 0.75rem;
+        }
+
+        .step {
+            margin-bottom: 1.5em;
+            page-break-inside: avoid;
+        }
+
+        .entry {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-top: 3px solid #2c3e50;
+        }
+    </style>
+</head>
+<body>
+<main>
+    {% block main %}
+        {{ content }}
+    {% endblock %}
+</main>
+</body>
+</html>

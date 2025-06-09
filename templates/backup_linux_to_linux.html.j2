@@ -1,0 +1,78 @@
+<div class="entry">
+    <h1>Backup Manual: Source Host {{ source_host }}</h1>
+    <p><strong>Target:</strong> {{ target_host }}</p>
+
+    <h2>Backup Steps</h2>
+
+    {% set step_counter = 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Ensure SSH access to target server {{ target_host }}</h3>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: {% if versioning %}Create timestamped target folder{% else %}Use target
+            folder{% endif %}</h3>
+        <div class="code">
+            {% if versioning %}
+                TIMESTAMP=$(date +"%Y%m%d")<br>
+                TARGET_FOLDER="{{ target_base }}/$TIMESTAMP"<br>
+                mkdir -p "$TARGET_FOLDER"<br>
+            {%- else -%}
+                TARGET_FOLDER="{{ target_base }}"
+            {%- endif -%}
+        </div>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Back up source folders to defined backup location</h3>
+        {% for source_path in source_paths %}
+            <div class="step">
+                <h4>Step {{ step_counter }}.{{ loop.index }}: Run rsync from source {{ source_path }}
+                    to {{ target_host }}</h4>
+                <div class="code">rsync
+                    {% if versioning and incremental %}-avz --link-dest={{ target_base }}/&lt;previous backup&gt;
+                        {% elif versioning %}
+                        -avz
+                    {% else %}
+                        -avz --delete
+                    {% endif %} {{ source_path }} {{ target_user }}@{{ target_host }}:{{ target_folder }}/
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Verify the files on {{ target_host }}</h3>
+    </div>
+
+    {% if retention_days and versioning %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: Optional: remove old backups older than {{ retention_days }} days</h3>
+            <div class="code">find {{ target_base }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec rm -rf {}
+                \;
+            </div>
+        </div>
+    {% endif %}
+
+    {% if frequency %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: Automate this backup with a cron job</h3>
+            <p>Edit your crontab:</p>
+            <div class="code">crontab -e</div>
+            <p>Example entry (daily at 2:00 AM):</p>
+            <div class="code">0 2 * * * /path/to/backup_script.sh >> /var/log/backup.log 2>&1</div>
+            <p>The <code>backup_script.sh</code> should:</p>
+            <ul>
+                <li>Find previous backup</li>
+                <li>Create new timestamped folder</li>
+                <li>Run rsync {% if incremental %}with <code>--link-dest</code>{% endif %}</li>
+                <li>Run retention command</li>
+            </ul>
+        </div>
+    {% endif %}
+</div>
