@@ -59,7 +59,7 @@
     {% if retention_days and versioning %}
         {% set step_counter = step_counter + 1 %}
         <div class="step">
-            <h3>Step {{ step_counter }}: Optional: implement retention policy on Windows target</h3>
+            <h3>Step {{ step_counter }}: Implement retention policy on Windows target</h3>
             <p>Example PowerShell one-liner:</p>
             <div class="code">Get-ChildItem -Path "Z:\{{ source_host }}" -Directory | Where-Object { $_.LastWriteTime
                 -lt (Get-Date).AddDays(-{{ retention_days }}) } | Remove-Item -Recurse -Force
@@ -67,19 +67,23 @@
         </div>
     {% endif %}
 
-    {% if frequency %}
-        {% set step_counter = step_counter + 1 %}
-        <div class="step">
-            <h3>Step {{ step_counter }}: Automate this backup with Windows Task Scheduler</h3>
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Automate this backup with Windows Task Scheduler</h3>
+        {% if frequency %}
             <p>Create a scheduled task that runs {{ frequency }}.</p>
-            <p>The scheduled task should run a PowerShell script or batch file that:</p>
-            <ul>
-                <li>Map network drive</li>
-                <li>Create new timestamped folder (if versioning)</li>
-                <li>Run Robocopy</li>
-                <li>Run retention cleanup (optional)</li>
-                <li>Unmap network drive</li>
-            </ul>
-        </div>
-    {% endif %}
+        {% endif %}
+        <p>The scheduled task should run a PowerShell script or batch file that:</p>
+        <ul>
+            <li>Map network drive</li>
+            {% if versioning %}
+                <li>Create new timestamped folder</li>
+            {% endif %}
+            <li>Run Robocopy</li>
+            {% if versioning and retention_days %}
+                <li>Run retention cleanup</li>
+            {% endif %}
+            <li>Unmap network drive</li>
+        </ul>
+    </div>
 </div>

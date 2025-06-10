@@ -15,12 +15,12 @@
             folder{% endif %}</h3>
         <div class="code">
             {% if versioning %}
-            TIMESTAMP=$(date +"%Y%m%d")<br>
-            TARGET_FOLDER="{{ target_base }}/{{ source_host }}/$TIMESTAMP"<br>
-            ssh {{ target_user }}@{{ target_host }} "mkdir -p $TARGET_FOLDER"<br>
-        {%- else -%}
-            TARGET_FOLDER="{{ target_base }}/{{ source_host }}"
-        {%- endif -%}
+                TIMESTAMP=$(date +"%Y%m%d")<br>
+                TARGET_FOLDER="{{ target_base }}/{{ source_host }}/$TIMESTAMP"<br>
+                ssh {{ target_user }}@{{ target_host }} "mkdir -p $TARGET_FOLDER"<br>
+            {%- else -%}
+                TARGET_FOLDER="{{ target_base }}/{{ source_host }}"
+            {%- endif -%}
         </div>
     </div>
 
@@ -33,13 +33,13 @@
                     target</h4>
                 <div class="code">rsync
                     {% if versioning and incremental %}-avz --link-dest={{ target_base }}/&lt;previous backup&gt;
-                        {% elif versioning %}
+                    {% elif versioning %}
                         -avz
                     {% else %}
                         -avz --delete
                     {% endif %} {{ source_path }} {{ target_user }}@{{ target_host }}:{{ target_folder }}/
                 </div>
-        </div>
+            </div>
         {% endfor %}
     </div>
 
@@ -53,22 +53,29 @@
         <div class="step">
             <h3>Step {{ step_counter }}: Optional: remove old backups older than {{ retention_days }} days on Linux
                 target</h3>
-            <div class="code">ssh {{ target_user }}@{{ target_host }} "find {{ target_base }}/{{ source_host }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec rm -rf {} \;"</div>
+            <div class="code">ssh {{ target_user }}@{{ target_host }} "find {{ target_base }}/{{ source_host }}/
+                -maxdepth 1 -type d -mtime +{{ retention_days }} -exec rm -rf {} \;"
+            </div>
         </div>
     {% endif %}
 
-    {% if frequency %}
-        {% set step_counter = step_counter + 1 %}
-        <div class="step">
-            <h3>Step {{ step_counter }}: Automate this backup with Windows Task Scheduler</h3>
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Automate this backup with Windows Task Scheduler</h3>
+        {% if frequency %}
             <p>Create a scheduled task that runs {{ frequency }}.</p>
-            <p>The scheduled task should run a PowerShell script or batch file that:</p>
-            <ul>
+        {% endif %}
+        <p>The scheduled task should run a PowerShell script or batch file that:</p>
+        <ul>
+            {% if versioning %}
                 <li>Find previous backup</li>
                 <li>Create new timestamped folder</li>
-                <li>Run rsync {% if incremental %}with <code>--link-dest</code>{% endif %}</li>
+            {% endif %}
+            <li>Run rsync backup command {% if incremental and versioning %}with <code>--link-dest</code>{% endif %}
+            </li>
+            {% if versioning and retention_days %}
                 <li>Run retention command</li>
-            </ul>
-        </div>
-    {% endif %}
+            {% endif %}
+        </ul>
+    </div>
 </div>

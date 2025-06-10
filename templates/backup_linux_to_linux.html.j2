@@ -33,7 +33,7 @@
                     to {{ target_host }}</h4>
                 <div class="code">rsync
                     {% if versioning and incremental %}-avz --link-dest={{ target_base }}/&lt;previous backup&gt;
-                        {% elif versioning %}
+                    {% elif versioning %}
                         -avz
                     {% else %}
                         -avz --delete
@@ -58,21 +58,25 @@
         </div>
     {% endif %}
 
-    {% if frequency %}
-        {% set step_counter = step_counter + 1 %}
-        <div class="step">
-            <h3>Step {{ step_counter }}: Automate this backup with a cron job</h3>
-            <p>Edit your crontab:</p>
-            <div class="code">crontab -e</div>
-            <p>Example entry (daily at 2:00 AM):</p>
-            <div class="code">0 2 * * * /path/to/backup_script.sh >> /var/log/backup.log 2>&1</div>
-            <p>The <code>backup_script.sh</code> should:</p>
-            <ul>
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Automate this backup with a cron job</h3>
+        <p>Edit your <a
+                href="https://www.stetic.com/developer/cronjob-linux-tutorial-und-crontab-syntax/">crontab</a>:
+        </p>
+        <div class="code">crontab -e</div>
+        <p>Example entry (daily at 2:00 AM):</p>
+        <div class="code">0 2 * * * /path/to/backup_script.sh >> /var/log/backup.log 2>&1</div>
+        <p>The <code>backup_script.sh</code> should:</p>
+        <ul>
+            {% if versioning %}
                 <li>Find previous backup</li>
                 <li>Create new timestamped folder</li>
-                <li>Run rsync {% if incremental %}with <code>--link-dest</code>{% endif %}</li>
+            {% endif %}
+            <li>Run rsync backup command {% if versioning and incremental %}with <code>--link-dest</code>{% endif %}</li>
+            {% if versioning and retention_days %}
                 <li>Run retention command</li>
-            </ul>
-        </div>
-    {% endif %}
+            {% endif %}
+        </ul>
+    </div>
 </div>

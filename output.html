@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>
+        
+            Backup Manual
+        
+    </title>
+    <style>
+        @media print {
+            @page {
+                margin: 15mm;
+            }
+
+            body {
+                margin: 0;
+                font-size: 0.8rem;
+            }
+        }
+
+        body {
+            font-family: sans-serif;
+            line-height: 1.5;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        .code {
+            background-color: #2a2a2a;
+            padding: 0.75em;
+            border-radius: 4px;
+            color: #ffffff;
+            font-family: Monospaced, monospace;
+            font-size: 0.75rem;
+        }
+
+        .step {
+            margin-bottom: 1.5em;
+            page-break-inside: avoid;
+        }
+
+        .entry {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-top: 3px solid #2c3e50;
+        }
+    </style>
+</head>
+<body>
+<main>
+    
+        <div class="entry">
+    <h1>Backup Manual: Source Host windows-source</h1>
+    <p><strong>Target:</strong> windows-target — Share: backups</p>
+
+    <h2>Backup Steps</h2>
+
+    
+    <div class="step">
+        <h3>Step 1: On target Windows server, create SMB share (if not already available) at
+            \\windows-target\backups</h3>
+    </div>
+
+    
+    <div class="step">
+        <h3>Step 2: On source Windows server, map network drive</h3>
+        <div class="code">net use Z: \\windows-target\backups /user:backupuser &lt;password&gt;
+        </div>
+    </div>
+
+    
+    <div class="step">
+        <h3>Step 3: Create timestamped folder</h3>
+        <div class="code">
+            
+                $timestamp = Get-Date -Format "yyyyMMdd"<br>
+                $targetFolder = "Z:\windows-source\$timestamp"<br>
+                New-Item -ItemType Directory -Path $targetFolder<br></div>
+    </div>
+
+    
+    <div class="step">
+        <h3>Step 4: Back up source folders to defined backup location</h3>
+        
+            <div class="step">
+                <h4>Step 4.1: Run Robocopy from D:\Projects to target folder</h4>
+                <div class="code">robocopy D:\Projects $targetFolder /MIR 
+                    /LOG:C:\backup\backup.log
+                </div>
+            </div>
+        
+            <div class="step">
+                <h4>Step 4.2: Run Robocopy from C:\Backup\Configs to target folder</h4>
+                <div class="code">robocopy C:\Backup\Configs $targetFolder /MIR 
+                    /LOG:C:\backup\backup.log
+                </div>
+            </div>
+        
+    </div>
+
+    
+    <div class="step">
+        <h3>Step 5: Verify the files on target Windows server</h3>
+    </div>
+
+    
+    <div class="step">
+        <h3>Step 6: Unmap network drive</h3>
+        <div class="code">net use Z: /delete</div>
+    </div>
+
+    
+        
+        <div class="step">
+            <h3>Step 7: Implement retention policy on Windows target</h3>
+            <p>Example PowerShell one-liner:</p>
+            <div class="code">Get-ChildItem -Path "Z:\windows-source" -Directory | Where-Object { $_.LastWriteTime
+                -lt (Get-Date).AddDays(-10) } | Remove-Item -Recurse -Force
+            </div>
+        </div>
+    
+
+    
+    <div class="step">
+        <h3>Step 8: Automate this backup with Windows Task Scheduler</h3>
+        
+        <p>The scheduled task should run a PowerShell script or batch file that:</p>
+        <ul>
+            <li>Map network drive</li>
+            
+                <li>Create new timestamped folder</li>
+            
+            <li>Run Robocopy</li>
+            
+                <li>Run retention cleanup</li>
+            
+            <li>Unmap network drive</li>
+        </ul>
+    </div>
+</div>
+    
+</main>
+</body>
+</html>

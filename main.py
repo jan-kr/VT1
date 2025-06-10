@@ -36,7 +36,7 @@ def criteria_in_list(criteria: dict, attribute_list: list[dict]) -> bool:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="CLI Implementation Guideline Generator", )
-    parser.add_argument("-m", "--mode")
+    parser.add_argument("-m", "--mode", choices=['backup'])
     parser.add_argument("-f", "--file")
     args = parser.parse_args()
 

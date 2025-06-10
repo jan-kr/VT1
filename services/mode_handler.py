@@ -13,8 +13,6 @@ def mode_backup(filename):
     if not sources:
         sources = [job.get('source_server', {})]
 
-    pprint.pprint(options)
-
     content = ""
     for source in sources:
         context = gen_backup_recommendation(source, target, options)
