@@ -1,6 +1,5 @@
 from services import helpers
 from services.recommendation_generator_service import render_scenario
-import pprint
 
 
 def mode_backup(filename):
