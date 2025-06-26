@@ -1,0 +1,28 @@
+{
+  "source_server": {
+    "hostname": "linux-source-01",
+    "ip": "192.168.1.10",
+    "os": "linux",
+    "access": {
+      "method": "ssh",
+      "username": "backupuser"
+    },
+    "data_to_backup": ["/var/www", "/etc"]
+  },
+  "target_server": {
+    "hostname": "windows-target-01",
+    "ip": "192.168.1.20",
+    "os": "windows",
+    "access": {
+      "method": "smb",
+      "username": "backupuser",
+      "share": "backups"
+    },
+    "target_base_path": "/backups"
+  },
+  "backup_options": {
+    "incremental": false,
+    "versioning": true,
+    "retention_days": 30
+  }
+}

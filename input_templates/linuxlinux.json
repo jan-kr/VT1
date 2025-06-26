@@ -1,0 +1,28 @@
+{
+  "source_server": {
+    "hostname": "linux-source-01",
+    "ip": "192.168.10.10",
+    "os": "linux",
+    "access": {
+      "method": "ssh",
+      "username": "user"
+    },
+    "data_to_backup": ["/var/www", "/etc"]
+  },
+  "target_server": {
+    "hostname": "linux-target-01",
+    "ip": "192.168.10.20",
+    "os": "linux",
+    "access": {
+      "method": "ssh",
+      "username": "backupuser"
+    },
+    "target_base_path": "/backups"
+  },
+  "backup_options": {
+    "incremental": true,
+    "versioning": true,
+    "retention_days": 30,
+	"frequency": "daily"
+  }
+}

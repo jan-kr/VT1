@@ -1,45 +1,41 @@
-from jinja2 import Template
-from db import Session
-from models import *
-from sqlalchemy.orm import selectinload
+from jinja2 import Environment, FileSystemLoader
+
+import pdfkit
 
 
-def generate_recommendations(session, safeguard: Safeguard, preset: ParameterPreset):
-    template = session.query(RecommendationTemplate).filter_by(safeguard_id=safeguard.id).first()
+def render_scenario(scenario, context):
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template(f"{scenario}.html.j2")
 
-    if not template or not preset:
-        #raise Exception("No template or preset found for safeguard with matching criteria")
-        return False
+    manual = template.render(context)
 
-    jinja_template = Template(template.description_template)
-    rendered_text = jinja_template.render(**preset.parameters)
-
-    return rendered_text
+    return manual
 
 
-def get_matching_presets(session, template):
-    required_set = set(template.parameters_required)
+def render_full(context, title):
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template("base.html.j2")
 
-    presets = session.query(ParameterPreset).all()
-    return [
-        preset for preset in presets
-        if required_set.issubset(preset.parameters.keys())
-    ]
+    manual = template.render({
+        "content": context,
+        "title": title,
+    })
 
-def get_matching_attribute_groups(session, preset: ParameterPreset, company = None):
-    match_dict = preset.match_criteria
+    return manual
 
-    if company is not None:
-        groups = [group.group for group in company.linked_attribute_groups]
-    else:
-        groups = session.query(AttributeGroup).options(
-            selectinload(AttributeGroup.attributes)
-        ).all()
 
-    matching_groups = []
+def save_html(content, filename):
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(content)
 
-    for group in groups:
-        if all(group.dict().get(k) == v for k, v in match_dict.items()):
-            matching_groups.append(group)
 
-    return matching_groups
+def save_pdf(html, filename):
+    pdfkit.from_string(html, filename)
+
+
+def save(content, output, filename):
+    match output:
+        case "pdf":
+            save_pdf(content, filename + ".pdf")
+        case _:
+            save_html(content, filename + ".html")

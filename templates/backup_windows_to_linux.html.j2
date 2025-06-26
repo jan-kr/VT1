@@ -1,0 +1,79 @@
+<div class="entry">
+    <h1>Backup Manual: Source Host {{ source_host }}</h1>
+    <p><strong>Target:</strong> {{ target_host }}</p>
+
+    <h2>Backup Steps</h2>
+
+    {% set step_counter = 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: On Windows source server, install rsync (via Cygwin, WSL, or native)</h3>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="s
+    tep">
+        <h3>Step {{ step_counter }}: {% if versioning %}Create timestamped target folder{% else %}Use target
+            folder{% endif %}</h3>
+        <div class="code">
+            {% if versioning %}
+                TIMESTAMP=$(date +"%Y%m%d")<br>
+                TARGET_FOLDER="{{ target_base }}/{{ source_host }}/$TIMESTAMP"<br>
+                ssh {{ target_user }}@{{ target_host }} "mkdir -p $TARGET_FOLDER"<br>
+            {%- else -%}
+                TARGET_FOLDER="{{ target_base }}/{{ source_host }}"
+            {%- endif -%}
+        </div>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Back up source folders to defined backup location</h3>
+        {% for source_path in source_paths %}
+            <div class="step">
+                <h4>Step {{ step_counter }}.{{ loop.index }}: Run rsync from Windows source {{ source_path }} to Linux
+                    target</h4>
+                <div class="code">rsync
+                    {% if versioning and incremental %}-avz --link-dest={{ target_base }}/&lt;previous backup&gt;
+                    {% elif versioning %}
+                        -avz
+                    {% else %}
+                        -avz --delete
+                    {% endif %} {{ source_path }} {{ target_user }}@{{ target_host }}:{{ target_folder }}/
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Verify the files on Linux target {{ target_host }}</h3>
+    </div>
+
+    {% if retention_days and versioning %}
+        {% set step_counter = step_counter + 1 %}
+        <div class="step">
+            <h3>Step {{ step_counter }}: remove old backups older than {{ retention_days }} days on Linux
+                target</h3>
+            <div class="code">find {{ target_base }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec
+                rm -rf {} \;
+            </div>
+        </div>
+    {% endif %}
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
+        <h3>Step {{ step_counter }}: Automate this backup with Windows Task Scheduler</h3>
+        {% if frequency %}
+            <p>Create a scheduled task that runs {{ frequency }}.</p>
+        {% endif %}
+        <p>The scheduled task should run a PowerShell script or batch file that:</p>
+        <ul>
+            {% if versioning %}
+                <li>Find previous backup</li>
+                <li>Create new timestamped folder</li>
+            {% endif %}
+            <li>Run rsync backup command {% if incremental and versioning %}with <code>--link-dest</code>{% endif %}
+            </li>
+        </ul>
+    </div>
+</div>
