@@ -51,9 +51,10 @@
     {% if retention_days and versioning %}
         {% set step_counter = step_counter + 1 %}
         <div class="step">
-            <h3>Step {{ step_counter }}: Optional: remove old backups older than {{ retention_days }} days</h3>
-            <div class="code">find {{ target_base }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec rm -rf {}
-                \;
+            <h3>Step {{ step_counter }}: remove old backups older than {{ retention_days }} days on Linux
+                target</h3>
+            <div class="code">find {{ target_base }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec
+                rm -rf {} \;
             </div>
         </div>
     {% endif %}
@@ -74,9 +75,6 @@
                 <li>Create new timestamped folder</li>
             {% endif %}
             <li>Run rsync backup command {% if versioning and incremental %}with <code>--link-dest</code>{% endif %}</li>
-            {% if versioning and retention_days %}
-                <li>Run retention command</li>
-            {% endif %}
         </ul>
     </div>
 </div>

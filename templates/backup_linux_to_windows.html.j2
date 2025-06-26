@@ -6,6 +6,12 @@
 
     {% set step_counter = 1 %}
     <div class="step">
+        <h3>Step {{ step_counter }}: On target Windows server, create SMB share (if not already available) at
+            \\{{ target_host }}\{{ target_share }}</h3>
+    </div>
+
+    {% set step_counter = step_counter + 1 %}
+    <div class="step">
         <h3>Step {{ step_counter }}: On Linux source server, mount Windows SMB share</h3>
         <div class="code">sudo mount -t cifs -o username={{ target_user }},password=&lt;password&gt; //{{ target_host }}/{{ target_share }}
             /mnt/backup
@@ -57,12 +63,10 @@
     {% if retention_days and versioning %}
         {% set step_counter = step_counter + 1 %}
         <div class="step">
-            <h3>Step {{ step_counter }}: Remove old backups older than {{ retention_days }} days (manually or
-                with
-                script on Windows share)</h3>
-            <p>Example (if share is mounted locally and supports UNIX timestamps):</p>
-            <div class="code">find /mnt/backup/{{ source_host }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec
-                rm -rf {} \;
+            <h3>Step {{ step_counter }}: Remove old backups older than {{ retention_days }} days</h3>
+            <p>Example PowerShell one-liner:</p>
+            <div class="code">Get-ChildItem -Path "{{ target_base }}" -Directory | Where-Object { $_.LastWriteTime
+                -lt (Get-Date).AddDays(-{{ retention_days }}) } | Remove-Item -Recurse -Force
             </div>
         </div>
     {% endif %}
@@ -85,9 +89,6 @@
             {% endif %}
             <li>Run rsync backup command</li>
             <li>Unmount SMB share</li>
-            {% if versioning and retention_days %}
-                <li>Run retention command</li>
-            {% endif %}
         </ul>
     </div>
 </div>

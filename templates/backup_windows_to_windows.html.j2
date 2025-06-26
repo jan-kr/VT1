@@ -59,9 +59,9 @@
     {% if retention_days and versioning %}
         {% set step_counter = step_counter + 1 %}
         <div class="step">
-            <h3>Step {{ step_counter }}: Implement retention policy on Windows target</h3>
+            <h3>Step {{ step_counter }}: Remove old backups older than {{ retention_days }} days</h3>
             <p>Example PowerShell one-liner:</p>
-            <div class="code">Get-ChildItem -Path "Z:\{{ source_host }}" -Directory | Where-Object { $_.LastWriteTime
+            <div class="code">Get-ChildItem -Path "{{ target_base }}" -Directory | Where-Object { $_.LastWriteTime
                 -lt (Get-Date).AddDays(-{{ retention_days }}) } | Remove-Item -Recurse -Force
             </div>
         </div>
@@ -80,9 +80,6 @@
                 <li>Create new timestamped folder</li>
             {% endif %}
             <li>Run Robocopy</li>
-            {% if versioning and retention_days %}
-                <li>Run retention cleanup</li>
-            {% endif %}
             <li>Unmap network drive</li>
         </ul>
     </div>

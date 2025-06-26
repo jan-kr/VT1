@@ -1,0 +1,28 @@
+{
+  "source_server": {
+    "hostname": "windows-source-01",
+    "ip": "192.168.10.40",
+    "os": "windows",
+    "access": {
+      "method": "rdp",
+      "username": "Administrator"
+    },
+    "data_to_backup": ["D:\\Projects", "C:\\Backup\\Configs"]
+  },
+  "target_server": {
+    "hostname": "windows-target-01",
+    "ip": "192.168.10.50",
+    "os": "windows",
+    "access": {
+      "method": "smb",
+      "username": "backupuser",
+      "share": "backups"
+    },
+    "target_base_path": "Z:\\"
+  },
+  "backup_options": {
+    "incremental": false,
+    "versioning": true,
+    "retention_days": 10
+  }
+}

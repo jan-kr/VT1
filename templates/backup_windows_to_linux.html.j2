@@ -10,7 +10,8 @@
     </div>
 
     {% set step_counter = step_counter + 1 %}
-    <div class="step">
+    <div class="s
+    tep">
         <h3>Step {{ step_counter }}: {% if versioning %}Create timestamped target folder{% else %}Use target
             folder{% endif %}</h3>
         <div class="code">
@@ -51,10 +52,10 @@
     {% if retention_days and versioning %}
         {% set step_counter = step_counter + 1 %}
         <div class="step">
-            <h3>Step {{ step_counter }}: Optional: remove old backups older than {{ retention_days }} days on Linux
+            <h3>Step {{ step_counter }}: remove old backups older than {{ retention_days }} days on Linux
                 target</h3>
-            <div class="code">ssh {{ target_user }}@{{ target_host }} "find {{ target_base }}/{{ source_host }}/
-                -maxdepth 1 -type d -mtime +{{ retention_days }} -exec rm -rf {} \;"
+            <div class="code">find {{ target_base }}/ -maxdepth 1 -type d -mtime +{{ retention_days }} -exec
+                rm -rf {} \;
             </div>
         </div>
     {% endif %}
@@ -73,9 +74,6 @@
             {% endif %}
             <li>Run rsync backup command {% if incremental and versioning %}with <code>--link-dest</code>{% endif %}
             </li>
-            {% if versioning and retention_days %}
-                <li>Run retention command</li>
-            {% endif %}
         </ul>
     </div>
 </div>
